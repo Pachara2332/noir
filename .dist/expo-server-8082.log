@@ -1,0 +1,10 @@
+env: load .env
+env: export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY NEXT_PUBLIC_SUPABASE_URL
+Starting project at E:\projects\noir
+Starting Metro Bundler
+
+ ERROR  An unknown error occurred while installing React Native DevTools. Details:
+
+spawn EPERM
+Waiting on http://localhost:8082
+Logs for your project will appear below.
