@@ -24,7 +24,7 @@ export default function ProtectedLayout() {
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="movie/[id]" options={{ title: 'Movie' }} />
+      <Stack.Screen name="movie/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="showtime/[id]" options={{ title: 'Select Seats' }} />
     </Stack>
   );

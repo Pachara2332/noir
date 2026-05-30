@@ -24,6 +24,15 @@ export type Cinema = {
   created_at: string;
 };
 
+export type UserProfile = {
+  id: string;
+  email: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Showtime = {
   id: string;
   movie_id: string;

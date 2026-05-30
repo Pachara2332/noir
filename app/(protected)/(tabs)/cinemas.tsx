@@ -1,6 +1,8 @@
-import MapView, { Marker } from 'react-native-maps';
 import { MapPin, Navigation } from 'lucide-react-native';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
+// Metro resolves this to CinemaMap.web.tsx on web and CinemaMap.native.tsx on iOS/Android.
+// @ts-expect-error TypeScript does not resolve React Native platform suffixes from this import.
+import { CinemaMap } from '../../../src/components/CinemaMap';
 import { Screen } from '../../../src/components/Screen';
 import { StateView } from '../../../src/components/StateView';
 import { useNearby } from '../../../src/hooks/useNearby';
@@ -11,35 +13,18 @@ export default function NearbyCinemasScreen() {
 
   if (loading) return <StateView loading title="Finding nearby cinemas" />;
 
-  const initialRegion = {
-    latitude: location?.latitude ?? cinemas[0]?.latitude ?? 13.7563,
-    longitude: location?.longitude ?? cinemas[0]?.longitude ?? 100.5018,
-    latitudeDelta: 0.12,
-    longitudeDelta: 0.12,
-  };
-
   return (
     <Screen scroll={false} contentStyle={styles.screen}>
       <View style={styles.header}>
         <Text style={styles.title}>Nearby Cinemas</Text>
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
-      <MapView style={styles.map} initialRegion={initialRegion} showsUserLocation={Boolean(location)}>
-        {cinemas.map((cinema) => (
-          <Marker
-            key={cinema.id}
-            coordinate={{ latitude: cinema.latitude, longitude: cinema.longitude }}
-            title={cinema.name}
-            description={cinema.address}
-            pinColor={colors.gold}
-          />
-        ))}
-      </MapView>
+      <CinemaMap cinemas={cinemas} userLocation={location} />
       <FlatList
         data={cinemas}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<StateView title="No cinemas found" message="Add cinemas seed data to Supabase." actionLabel="Retry" onAction={refresh} />}
+        ListEmptyComponent={<StateView title="No cinemas found" message="Please try again in a moment." actionLabel="Retry" onAction={refresh} />}
         renderItem={({ item }) => (
           <View style={styles.card}>
             <View style={styles.iconBox}>
@@ -75,11 +60,6 @@ const styles = StyleSheet.create({
   error: {
     color: colors.red,
     fontWeight: '700',
-  },
-  map: {
-    height: 260,
-    borderRadius: 8,
-    overflow: 'hidden',
   },
   list: {
     gap: 12,

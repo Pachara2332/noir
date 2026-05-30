@@ -16,9 +16,13 @@ export default function RegisterScreen() {
   async function submit() {
     setLoading(true);
     try {
-      await signUp(email.trim(), password);
-      Alert.alert('Account created', 'Check your email if confirmation is enabled.');
-      router.replace('/(protected)/(tabs)');
+      const session = await signUp(email.trim(), password);
+      if (session) {
+        router.replace('/(protected)/(tabs)');
+      } else {
+        Alert.alert('Account created', 'Please confirm your email, then login.');
+        router.replace('/auth/login');
+      }
     } catch (error) {
       Alert.alert('Register failed', error instanceof Error ? error.message : 'Please try again.');
     } finally {

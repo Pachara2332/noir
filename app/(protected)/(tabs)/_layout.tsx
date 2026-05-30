@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Film, MapPin, Ticket } from 'lucide-react-native';
+import { Film, MapPin, Ticket, UserRound } from 'lucide-react-native';
 import { colors } from '../../../src/styles/theme';
 
 export default function TabLayout() {
@@ -8,13 +8,24 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.panel,
+          backgroundColor: '#070707',
           borderTopColor: colors.border,
-          minHeight: 64,
-          paddingTop: 8,
+          minHeight: 56,
+          paddingTop: 4,
+          paddingBottom: 4,
+        },
+        tabBarLabelStyle: {
+          fontSize: 8,
+          fontWeight: '800',
+          textTransform: 'uppercase',
+        },
+        tabBarItemStyle: {
+          borderRadius: 8,
+          marginHorizontal: 3,
         },
         tabBarActiveTintColor: colors.gold,
         tabBarInactiveTintColor: colors.muted,
+        tabBarActiveBackgroundColor: 'rgba(215,181,109,0.13)',
       }}
     >
       <Tabs.Screen
@@ -36,6 +47,13 @@ export default function TabLayout() {
         options={{
           title: 'Tickets',
           tabBarIcon: ({ color, size }) => <Ticket color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, size }) => <UserRound color={color} size={size} />,
         }}
       />
     </Tabs>

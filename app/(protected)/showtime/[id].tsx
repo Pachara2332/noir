@@ -105,7 +105,7 @@ export default function ShowtimeScreen() {
       </View>
 
       {seats.length === 0 ? (
-        <StateView title="No seats configured" message="Generate seats in Supabase for this showtime." actionLabel="Retry" onAction={refresh} />
+        <StateView title="No seats available" message="This auditorium is not ready for booking yet." actionLabel="Retry" onAction={refresh} />
       ) : (
         <SeatMap seats={seats} selectedSeatIds={selectedSeatIds} onToggle={toggleSeat} />
       )}

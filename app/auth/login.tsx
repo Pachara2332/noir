@@ -7,6 +7,17 @@ import { Screen } from '../../src/components/Screen';
 import { useAuth } from '../../src/hooks/useAuth';
 import { colors } from '../../src/styles/theme';
 
+function getAuthMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : 'Please try again.';
+  if (message.toLowerCase().includes('invalid login credentials')) {
+    return 'Email or password is incorrect, or this account has not confirmed email yet.';
+  }
+  if (message.toLowerCase().includes('email not confirmed')) {
+    return 'Please confirm your email before logging in.';
+  }
+  return message;
+}
+
 export default function LoginScreen() {
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
@@ -19,7 +30,7 @@ export default function LoginScreen() {
       await signIn(email.trim(), password);
       router.replace('/(protected)/(tabs)');
     } catch (error) {
-      Alert.alert('Login failed', error instanceof Error ? error.message : 'Please try again.');
+      Alert.alert('Login failed', getAuthMessage(error));
     } finally {
       setLoading(false);
     }

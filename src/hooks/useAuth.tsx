@@ -7,7 +7,7 @@ type AuthContextValue = {
   user: User | null;
   initializing: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<Session | null>;
   signOut: () => Promise<void>;
 };
 
@@ -41,8 +41,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
         if (error) throw error;
       },
       signUp: async (email, password) => {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
+        return data.session;
       },
       signOut: async () => {
         const { error } = await supabase.auth.signOut();
