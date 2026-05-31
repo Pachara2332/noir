@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
-import { LogOut, QrCode } from 'lucide-react-native';
+import { QrCode, Ticket } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Linking, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Screen } from '../../ui/Screen';
 import { StateView } from '../../ui/StateView';
 import { useAuth } from '../../core/auth/useAuth';
@@ -11,11 +11,12 @@ import { colors } from '../../core/theme';
 import { Booking } from '../../types/database';
 
 export default function TicketsScreen() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [tickets, setTickets] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TicketTab>('active');
 
   const load = useCallback(async (isRefresh = false) => {
     if (!user) return;
@@ -37,36 +38,36 @@ export default function TicketsScreen() {
     load();
   }, [load]);
 
-  async function logout() {
-    await signOut();
-    router.replace('/auth/login');
-  }
-
   if (loading) return <StateView loading title="Loading your tickets" />;
   if (error) return <StateView title="Could not load tickets" message={error} actionLabel="Retry" onAction={() => load()} />;
+
+  const visibleTickets = tickets.filter((ticket) => {
+    const startsAt = ticket.showtimes?.starts_at;
+    const isPast = ticket.status === 'cancelled' || (startsAt ? new Date(startsAt) < new Date() : false);
+    return activeTab === 'past' ? isPast : !isPast;
+  });
 
   return (
     <Screen scroll={false} contentStyle={styles.screen}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.logo}>NOIR</Text>
           <Text style={styles.title}>My Tickets</Text>
-          <Text style={styles.subtitle}>@ {user?.email}</Text>
+          <Text style={styles.subtitle}>{user?.email}</Text>
         </View>
       </View>
 
       <View style={styles.segment}>
-        <Text style={styles.segmentActive}>ACTIVE PASSES</Text>
-        <Text style={styles.segmentInactive}>PAST SCREENINGS</Text>
+        <TicketTabButton active={activeTab === 'active'} label="ACTIVE PASSES" onPress={() => setActiveTab('active')} />
+        <TicketTabButton active={activeTab === 'past'} label="PAST SCREENINGS" onPress={() => setActiveTab('past')} />
       </View>
 
       <FlatList
-        data={tickets}
+        data={visibleTickets}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.gold} />}
-        ListEmptyComponent={<StateView title="No active passes" message="Reserve a screening and your pass will appear here." />}
-        ListFooterComponent={<ConciergePanel />}
+        ListEmptyComponent={<EmptyTickets past={activeTab === 'past'} />}
+        ListFooterComponent={visibleTickets.length ? <ConciergePanel /> : null}
         renderItem={({ item, index }) => <TicketPass booking={item} primary={index === 0} />}
       />
     </Screen>
@@ -98,7 +99,7 @@ function TicketPass({ booking, primary }: { booking: Booking; primary: boolean }
           <View>
             <Text style={styles.passLabel}>DATE & TIME</Text>
             <Text style={styles.passText}>
-              {date ? `${date.toLocaleString(undefined, { month: 'short' })} ${date.getDate()} · ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Reserved'}
+              {date ? `${date.toLocaleString(undefined, { month: 'short' })} ${date.getDate()} \u00b7 ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Reserved'}
             </Text>
           </View>
           <View>
@@ -111,11 +112,36 @@ function TicketPass({ booking, primary }: { booking: Booking; primary: boolean }
             <QrCode color={colors.gold} size={18} />
             <Text style={styles.code}>NR-{booking.id.slice(0, 3).toUpperCase()}-{booking.id.slice(-2).toUpperCase()}</Text>
           </View>
-          <View style={primary ? styles.digitalPass : styles.receiptButton}>
+          <Pressable onPress={() => showTicketDetails(booking)} style={primary ? styles.digitalPass : styles.receiptButton}>
             <Text style={primary ? styles.digitalPassText : styles.receiptText}>{primary ? 'Digital Pass' : 'View Receipt'}</Text>
-          </View>
+          </Pressable>
         </View>
       </View>
+    </View>
+  );
+}
+
+function showTicketDetails(booking: Booking) {
+  Alert.alert(
+    'Digital pass',
+    `Booking NR-${booking.id.slice(0, 3).toUpperCase()}-${booking.id.slice(-2).toUpperCase()}\nSeats ${booking.seat_labels.join(', ')}\nTotal \u0e3f${booking.total_price.toFixed(0)}`,
+  );
+}
+
+function EmptyTickets({ past = false }: { past?: boolean }) {
+  return (
+    <View style={styles.empty}>
+      <View style={styles.emptyIcon}>
+        <Ticket color={colors.gold} size={64} strokeWidth={1.4} />
+        <QrCode color={colors.gold} size={28} />
+      </View>
+      <Text style={styles.emptyTitle}>{past ? 'No past screenings' : 'No tickets yet'}</Text>
+      <Text style={styles.emptyCopy}>{past ? 'Your screening history will appear here.' : 'Your confirmed screenings and digital passes will appear here.'}</Text>
+      {!past ? (
+        <Pressable onPress={() => router.replace('/(protected)/(tabs)')} style={styles.emptyButton}>
+          <Text style={styles.emptyButtonText}>EXPLORE MOVIES</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -125,24 +151,39 @@ function ConciergePanel() {
     <View style={styles.concierge}>
       <Text style={styles.conciergeTitle}>Need Assistance?</Text>
       <Text style={styles.conciergeCopy}>Our concierge is available 24/7 to handle your booking inquiries and special requests.</Text>
-      <View style={styles.conciergeButton}>
+      <Pressable onPress={() => Linking.openURL('mailto:concierge@noir.example?subject=Noir%20booking%20assistance')} style={styles.conciergeButton}>
         <Text style={styles.conciergeButtonText}>CONTACT NOIR CONCIERGE</Text>
-      </View>
+      </Pressable>
     </View>
+  );
+}
+
+type TicketTab = 'active' | 'past';
+
+function TicketTabButton({ active, label, onPress }: { active: boolean; label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={styles.segmentItem}>
+      <Text style={active ? styles.segmentActive : styles.segmentInactive}>{label}</Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { paddingBottom: 0 },
   header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingBottom: 16 },
-  logo: { color: colors.gold, fontSize: 23, fontWeight: '900', fontFamily: 'serif' },
-  title: { color: colors.gold, fontSize: 24, fontWeight: '900', fontFamily: 'serif', marginTop: 18 },
-  subtitle: { color: colors.text, marginTop: 5, fontWeight: '800', fontSize: 12 },
-  logout: { width: 38, height: 38, borderRadius: 9, borderColor: colors.borderBright, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  segment: { flexDirection: 'row', gap: 18, borderBottomColor: colors.border, borderBottomWidth: 1, marginBottom: 16 },
-  segmentActive: { color: colors.gold, fontSize: 11, fontWeight: '900', letterSpacing: 1.4, paddingBottom: 11, borderBottomColor: colors.gold, borderBottomWidth: 2 },
-  segmentInactive: { color: colors.muted, fontSize: 11, fontWeight: '900', letterSpacing: 1.4, paddingBottom: 11 },
+  title: { color: colors.text, fontSize: 34, fontWeight: '900' },
+  subtitle: { color: colors.muted, marginTop: 5, fontWeight: '700', fontSize: 12 },
+  segment: { flexDirection: 'row', borderRadius: 26, padding: 4, backgroundColor: colors.panelSoft, marginBottom: 16 },
+  segmentActive: { borderRadius: 22, color: colors.background, backgroundColor: colors.gold, fontSize: 11, fontWeight: '900', letterSpacing: 1.1, paddingVertical: 12, textAlign: 'center' },
+  segmentInactive: { color: colors.muted, fontSize: 11, fontWeight: '900', letterSpacing: 1.1, paddingVertical: 12, textAlign: 'center' },
+  segmentItem: { flex: 1 },
   list: { gap: 18, paddingBottom: 92 },
+  empty: { minHeight: 470, alignItems: 'center', justifyContent: 'center', gap: 14, paddingHorizontal: 24 },
+  emptyIcon: { width: 132, height: 108, borderRadius: 24, alignItems: 'center', justifyContent: 'center', gap: 2, backgroundColor: colors.panel },
+  emptyTitle: { color: colors.text, fontSize: 26, fontWeight: '900', textAlign: 'center' },
+  emptyCopy: { maxWidth: 280, color: colors.muted, lineHeight: 21, textAlign: 'center' },
+  emptyButton: { marginTop: 8, borderRadius: 22, paddingHorizontal: 22, paddingVertical: 13, backgroundColor: colors.gold },
+  emptyButtonText: { color: colors.background, fontSize: 11, fontWeight: '900', letterSpacing: 1.4 },
   pass: { minHeight: 330, borderRadius: 8, borderColor: colors.borderBright, borderWidth: 1, overflow: 'hidden', backgroundColor: colors.panel },
   passImage: { height: 124, backgroundColor: colors.slate },
   passShade: { position: 'absolute', left: 0, right: 0, top: 0, height: 124, backgroundColor: 'rgba(0,0,0,0.28)' },

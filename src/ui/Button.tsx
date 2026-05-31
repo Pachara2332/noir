@@ -32,7 +32,7 @@ export function Button({ title, onPress, loading, disabled, variant = 'primary',
 const styles = StyleSheet.create({
   base: {
     minHeight: 50,
-    borderRadius: 8,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 18,

@@ -1,10 +1,21 @@
 import { router } from 'expo-router';
-import { CalendarDays, ChevronLeft, Tag, UserRound } from 'lucide-react-native';
+import {
+  CalendarDays,
+  ChevronRight,
+  CircleHelp,
+  CreditCard,
+  Globe2,
+  LogOut,
+  ShieldCheck,
+  Tag,
+  UserRound,
+} from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -27,6 +38,7 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [language, setLanguage] = useState<'EN' | 'TH'>('EN');
 
   const loadProfile = useCallback(async () => {
     if (!user) return;
@@ -88,10 +100,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.topBar}>
-        <Pressable onPress={() => router.back()} style={styles.iconButton}>
-          <ChevronLeft color={colors.gold} size={26} />
-        </Pressable>
-        <Text style={styles.logo}>NOIR</Text>
+        <Text style={styles.logo}>Account</Text>
         <View style={styles.miniAvatar}>
           {avatarUrl ? <Image source={{ uri: avatarUrl }} style={styles.miniAvatarImage} /> : <UserRound color={colors.gold} size={18} />}
         </View>
@@ -105,6 +114,12 @@ export default function ProfileScreen() {
         <Text style={styles.memberName}>{memberName}</Text>
         <Text style={styles.level}>CONCIERGE LEVEL</Text>
 
+        <View style={styles.stats}>
+          <StatCard icon={<CalendarDays color={colors.gold} size={22} />} label="SCREENINGS" value="42" />
+          <StatCard icon={<Tag color={colors.gold} size={22} />} label="NOIR POINTS" value="12.5k" />
+        </View>
+
+        <Text style={styles.sectionTitle}>Personal information</Text>
         <View style={styles.form}>
           <ProfileField
             label="DISPLAY NAME"
@@ -127,18 +142,49 @@ export default function ProfileScreen() {
           />
         </View>
 
+        <Text style={styles.sectionTitle}>Membership</Text>
+        <Pressable
+          onPress={() => Alert.alert('Noir Concierge', 'Your membership includes priority booking and private-screening benefits.')}
+          style={styles.membershipCard}
+        >
+          <View style={styles.membershipIcon}>
+            <ShieldCheck color={colors.gold} size={27} />
+          </View>
+          <View style={styles.membershipBody}>
+            <Text style={styles.membershipName}>NOIR CONCIERGE</Text>
+            <Text style={styles.membershipCopy}>Priority booking and private-screening benefits</Text>
+          </View>
+          <ChevronRight color={colors.muted} size={20} />
+        </Pressable>
+
+        <Text style={styles.sectionTitle}>More</Text>
+        <View style={styles.menu}>
+          <MenuRow
+            icon={<CreditCard color={colors.gold} size={19} />}
+            label="Saved payment methods"
+            onPress={() => Alert.alert('Payment methods', 'No saved payment methods yet.')}
+          />
+          <MenuRow
+            icon={<Globe2 color={colors.gold} size={19} />}
+            label="Language"
+            detail={language}
+            onPress={() => setLanguage((current) => current === 'EN' ? 'TH' : 'EN')}
+          />
+          <MenuRow
+            icon={<CircleHelp color={colors.gold} size={19} />}
+            label="Help and concierge"
+            onPress={() => Linking.openURL('mailto:concierge@noir.example?subject=Noir%20support')}
+          />
+        </View>
+
         <View style={styles.actions}>
           <Pressable onPress={saveProfile} disabled={saving} style={({ pressed }) => [styles.saveButton, pressed && styles.pressed, saving && styles.disabled]}>
             {saving ? <ActivityIndicator color={colors.background} /> : <Text style={styles.saveText}>SAVE PROFILE</Text>}
           </Pressable>
           <Pressable onPress={logout} style={({ pressed }) => [styles.signOutButton, pressed && styles.pressed]}>
+            <LogOut color={colors.red} size={17} />
             <Text style={styles.signOutText}>SIGN OUT</Text>
           </Pressable>
-        </View>
-
-        <View style={styles.stats}>
-          <StatCard icon={<CalendarDays color={colors.gold} size={22} />} label="SCREENINGS" value="42" />
-          <StatCard icon={<Tag color={colors.gold} size={22} />} label="NOIR POINTS" value="12.5k" />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -181,30 +227,34 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
   );
 }
 
+function MenuRow({ icon, label, detail, onPress }: { icon: React.ReactNode; label: string; detail?: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.menuRow, pressed && styles.pressed]}>
+      <View style={styles.menuIcon}>{icon}</View>
+      <Text style={styles.menuLabel}>{label}</Text>
+      {detail ? <Text style={styles.menuDetail}>{detail}</Text> : null}
+      <ChevronRight color={colors.muted} size={19} />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
   },
   topBar: {
-    height: 50,
+    minHeight: 54,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
   },
-  iconButton: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   logo: {
-    color: colors.gold,
-    fontSize: 25,
+    color: colors.text,
+    fontSize: 30,
     fontWeight: '900',
     letterSpacing: 0,
-    fontFamily: 'serif',
   },
   miniAvatar: {
     width: 30,
@@ -223,14 +273,14 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 86,
+    paddingTop: 22,
+    paddingBottom: 110,
     alignItems: 'center',
   },
   avatarFrame: {
     width: 94,
     height: 94,
-    borderRadius: 12,
+    borderRadius: 47,
     borderColor: colors.gold,
     borderWidth: 2,
     backgroundColor: '#121212',
@@ -262,7 +312,15 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 3,
     marginTop: 8,
-    marginBottom: 20,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    width: '100%',
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: '900',
+    marginTop: 28,
+    marginBottom: 14,
   },
   form: {
     width: '100%',
@@ -314,10 +372,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#101010',
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: colors.panel,
   },
   signOutText: {
-    color: colors.gold,
+    color: colors.red,
     fontSize: 12,
     fontWeight: '900',
     letterSpacing: 2.5,
@@ -333,12 +393,12 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     gap: 12,
-    marginTop: 34,
+    marginTop: 6,
   },
   statCard: {
     flex: 1,
     minHeight: 98,
-    borderRadius: 8,
+    borderRadius: 14,
     backgroundColor: colors.panel,
     borderColor: '#24201a',
     borderWidth: 1,
@@ -357,4 +417,45 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     fontFamily: 'serif',
   },
+  membershipCard: {
+    width: '100%',
+    minHeight: 96,
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.panel,
+    borderColor: colors.border,
+    borderWidth: 1,
+  },
+  membershipIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.panelSoft,
+  },
+  membershipBody: { flex: 1, gap: 6 },
+  membershipName: { color: colors.gold, fontSize: 14, fontWeight: '900', letterSpacing: 1.3 },
+  membershipCopy: { color: colors.muted, fontSize: 12, lineHeight: 17 },
+  menu: {
+    width: '100%',
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: colors.panel,
+  },
+  menuRow: {
+    minHeight: 62,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+  },
+  menuIcon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.panelSoft },
+  menuLabel: { flex: 1, color: colors.text, fontSize: 14, fontWeight: '700' },
+  menuDetail: { color: colors.gold, fontWeight: '900' },
 });

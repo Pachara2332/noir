@@ -7,9 +7,11 @@ import { getMapTilerTileUrl } from '../core/config/maps';
 type CinemaMapProps = {
   cinemas: NearbyCinema[];
   userLocation: { latitude: number; longitude: number } | null;
+  selectedCinemaId?: string | null;
+  onSelectCinema?: (cinemaId: string) => void;
 };
 
-export function CinemaMap({ cinemas, userLocation }: CinemaMapProps) {
+export function CinemaMap({ cinemas, userLocation, selectedCinemaId, onSelectCinema }: CinemaMapProps) {
   const tileUrl = getMapTilerTileUrl();
   const initialRegion = {
     latitude: userLocation?.latitude ?? cinemas[0]?.latitude ?? 13.7563,
@@ -32,7 +34,8 @@ export function CinemaMap({ cinemas, userLocation }: CinemaMapProps) {
           coordinate={{ latitude: cinema.latitude, longitude: cinema.longitude }}
           title={cinema.name}
           description={cinema.address}
-          pinColor={colors.gold}
+          pinColor={cinema.id === selectedCinemaId ? colors.gold : colors.goldDeep}
+          onPress={() => onSelectCinema?.(cinema.id)}
         />
       ))}
     </MapView>

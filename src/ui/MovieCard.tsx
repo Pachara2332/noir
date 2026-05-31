@@ -1,38 +1,30 @@
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
-import { Clock, Heart } from 'lucide-react-native';
+import { Clock } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../core/theme';
 import { Movie } from '../types/database';
 
 type MovieCardProps = {
   movie: Movie;
-  featured?: boolean;
 };
 
-export function MovieCard({ movie, featured = false }: MovieCardProps) {
+export function MovieCard({ movie }: MovieCardProps) {
   return (
     <Link href={`/(protected)/movie/${movie.id}`} asChild>
-      <Pressable style={({ pressed }) => [featured ? styles.featuredCard : styles.card, pressed && styles.pressed]}>
-        <Image source={{ uri: movie.backdrop_url ?? movie.poster_url }} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
-        <View style={styles.tint} />
-        <Pressable style={styles.heart} pointerEvents="none">
-          <Heart color={colors.gold} size={18} />
-        </Pressable>
-        <View style={featured ? styles.featuredBody : styles.body}>
-          <Text style={styles.rating}>{movie.rating}</Text>
-          <Text style={featured ? styles.featuredTitle : styles.title} numberOfLines={featured ? 3 : 2}>
-            {movie.title}
-          </Text>
-          <View style={styles.metaRow}>
-            <Clock color={colors.gold} size={13} />
-            <Text style={styles.meta}>{movie.duration_minutes} min</Text>
-            <Text style={styles.meta}>{movie.genre}</Text>
+      <Pressable style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+        <View style={styles.poster}>
+          <Image source={{ uri: movie.poster_url }} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
+          <View style={styles.posterBorder} />
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{movie.rating}</Text>
           </View>
-          <Text style={styles.synopsis} numberOfLines={featured ? 3 : 0}>{movie.synopsis}</Text>
-          <View style={styles.button}>
-            <Text style={styles.buttonText}>Book Now</Text>
-          </View>
+        </View>
+        <Text style={styles.title} numberOfLines={2}>{movie.title}</Text>
+        <Text style={styles.genre} numberOfLines={1}>{movie.genre}</Text>
+        <View style={styles.metaRow}>
+          <Clock color={colors.muted} size={12} />
+          <Text style={styles.meta}>{movie.duration_minutes} min</Text>
         </View>
       </Pressable>
     </Link>
@@ -41,110 +33,56 @@ export function MovieCard({ movie, featured = false }: MovieCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 206,
-    borderRadius: 8,
-    overflow: 'hidden',
-    borderColor: colors.borderBright,
-    borderWidth: 1,
-    backgroundColor: colors.panel,
-  },
-  featuredCard: {
-    minHeight: 318,
-    borderRadius: 8,
-    overflow: 'hidden',
-    borderColor: colors.borderBright,
-    borderWidth: 1,
-    backgroundColor: colors.panel,
+    flex: 1,
+    gap: 5,
   },
   pressed: {
     transform: [{ scale: 0.99 }],
   },
-  tint: {
+  poster: {
+    aspectRatio: 0.7,
+    overflow: 'hidden',
+    borderRadius: 12,
+    backgroundColor: colors.panel,
+  },
+  posterBorder: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.38)',
-  },
-  heart: {
-    position: 'absolute',
-    right: 14,
-    top: 14,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    borderColor: colors.borderBright,
+    borderColor: colors.gold,
     borderWidth: 1,
-    backgroundColor: 'rgba(5,5,5,0.72)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 12,
   },
-  body: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    padding: 12,
-    gap: 6,
-  },
-  featuredBody: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    padding: 15,
-    gap: 6,
-  },
-  rating: {
-    alignSelf: 'flex-start',
-    color: colors.background,
+  badge: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     backgroundColor: colors.gold,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 3,
+    borderTopLeftRadius: 10,
+  },
+  badgeText: {
+    color: colors.background,
     fontSize: 10,
     fontWeight: '900',
   },
   title: {
     color: colors.text,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 20,
     fontWeight: '900',
-    fontFamily: 'serif',
-  },
-  featuredTitle: {
-    color: colors.text,
-    fontSize: 29,
-    lineHeight: 31,
-    fontWeight: '900',
-    fontFamily: 'serif',
+    marginTop: 3,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    flexWrap: 'wrap',
+    gap: 4,
   },
   meta: {
     color: colors.muted,
     fontSize: 11,
-    fontWeight: '800',
   },
-  synopsis: {
-    color: colors.text,
-    lineHeight: 17,
-    maxWidth: 230,
+  genre: {
+    color: colors.muted,
     fontSize: 12,
-  },
-  button: {
-    marginTop: 6,
-    alignSelf: 'flex-start',
-    minWidth: 100,
-    height: 32,
-    borderRadius: 3,
-    borderColor: colors.gold,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(5,5,5,0.52)',
-  },
-  buttonText: {
-    color: colors.gold,
-    fontSize: 11,
-    fontWeight: '900',
-    fontFamily: 'serif',
   },
 });

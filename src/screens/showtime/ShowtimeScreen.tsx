@@ -99,7 +99,7 @@ export default function ShowtimeScreen() {
         </View>
         <View style={styles.headerCopy}>
           <Text style={styles.movie}>{showtime?.movies?.title ?? 'Showtime'}</Text>
-          <Text style={styles.meta}>{showtime?.cinemas?.name} · {showtime?.auditorium}</Text>
+          <Text style={styles.meta}>{showtime?.cinemas?.name}{' \u00b7 '}{showtime?.auditorium}</Text>
           <Text style={styles.meta}>{showtime?.starts_at ? new Date(showtime.starts_at).toLocaleString() : ''}</Text>
         </View>
       </View>
@@ -107,7 +107,12 @@ export default function ShowtimeScreen() {
       {seats.length === 0 ? (
         <StateView title="No seats available" message="This auditorium is not ready for booking yet." actionLabel="Retry" onAction={refresh} />
       ) : (
-        <SeatMap seats={seats} selectedSeatIds={selectedSeatIds} onToggle={toggleSeat} />
+        <SeatMap
+          seats={seats}
+          selectedSeatIds={selectedSeatIds}
+          basePrice={showtime?.base_price ?? 0}
+          onToggle={toggleSeat}
+        />
       )}
 
       <View style={styles.summary}>
@@ -117,7 +122,7 @@ export default function ShowtimeScreen() {
         </View>
         <View>
           <Text style={styles.summaryLabel}>Total</Text>
-          <Text style={styles.total}>฿{total.toFixed(0)}</Text>
+          <Text style={styles.total}>{'\u0e3f'}{total.toFixed(0)}</Text>
         </View>
       </View>
 
@@ -145,13 +150,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.panel,
     borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: 14,
   },
   icon: {
     width: 48,
     height: 48,
-    borderRadius: 8,
+    borderRadius: 14,
     backgroundColor: colors.panelSoft,
     alignItems: 'center',
     justifyContent: 'center',
@@ -174,7 +179,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 14,
     backgroundColor: colors.panel,
-    borderRadius: 8,
+    borderRadius: 14,
     borderColor: colors.border,
     borderWidth: 1,
     padding: 16,

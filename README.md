@@ -80,6 +80,18 @@ The seed creates:
 
 Note: `supabase/seed.sql` truncates movie, cinema, showtime, seat, and booking data before reseeding.
 
+After reseeding, verify the seat mock layout:
+
+```sql
+select row_label, min(seat_number), max(seat_number), count(*), min(price_modifier), max(price_modifier)
+from public.seats
+where showtime_id = '90000000-0000-0000-0000-000000000001'
+group by row_label
+order by row_label;
+```
+
+Rows `A-C` should be narrower premium rows, rows `G-H` should be comfort rows, and the remaining rows should be standard rows. Legacy `row` and `number` columns are removed by the seed.
+
 ## Project Structure
 
 ```text

@@ -129,6 +129,12 @@ alter table public.seats add column if not exists price_modifier numeric(10, 2) 
 alter table public.seats add column if not exists booking_id uuid references public.bookings(id) on delete set null;
 alter table public.seats add column if not exists updated_at timestamptz default now();
 
+-- Remove legacy seat columns after their replacements exist. The app reads
+-- row_label and seat_number exclusively, and keeping both pairs obscures the
+-- auditorium shape when inspecting seeded data in the Table Editor.
+alter table public.seats drop column if exists "row";
+alter table public.seats drop column if exists "number";
+
 update public.movies
 set
   synopsis = coalesce(synopsis, ''),

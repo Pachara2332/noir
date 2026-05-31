@@ -1,7 +1,7 @@
 import { MapPin } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { createElement } from 'react';
-import { DimensionValue, StyleSheet, Text, View } from 'react-native';
+import { DimensionValue, Pressable, StyleSheet, Text, View } from 'react-native';
 import { getMapTilerStaticUrl } from '../core/config/maps';
 import { colors } from '../core/theme';
 import { NearbyCinema } from '../types/database';
@@ -9,9 +9,11 @@ import { NearbyCinema } from '../types/database';
 type CinemaMapProps = {
   cinemas: NearbyCinema[];
   userLocation: { latitude: number; longitude: number } | null;
+  selectedCinemaId?: string | null;
+  onSelectCinema?: (cinemaId: string) => void;
 };
 
-export function CinemaMap({ cinemas, userLocation }: CinemaMapProps) {
+export function CinemaMap({ cinemas, userLocation, selectedCinemaId, onSelectCinema }: CinemaMapProps) {
   const center = userLocation ?? cinemas[0] ?? { latitude: 13.7563, longitude: 100.5018 };
   const staticMapUrl = getMapTilerStaticUrl(center.latitude, center.longitude);
   const plottedCinemas = cinemas.length ? cinemas : [];
@@ -42,20 +44,22 @@ export function CinemaMap({ cinemas, userLocation }: CinemaMapProps) {
           })
         : null}
       <View style={styles.scrim} pointerEvents="none" />
-      {!staticMapUrl ? (
-        <View style={styles.markerLayer} pointerEvents="none">
+      <View style={styles.markerLayer}>
           {plottedCinemas.map((cinema) => {
             const left = `${((cinema.longitude - minLng) / Math.max(maxLng - minLng, 1)) * 78 + 11}%` as DimensionValue;
             const top = `${(1 - (cinema.latitude - minLat) / Math.max(maxLat - minLat, 1)) * 78 + 11}%` as DimensionValue;
-            const isSf = cinema.name.toLowerCase().includes('sf');
+            const selected = cinema.id === selectedCinemaId;
             return (
-              <View key={cinema.id} style={[styles.marker, { left, top }, isSf ? styles.sfMarker : styles.majorMarker]}>
-                <Text style={styles.markerText}>{isSf ? 'SF' : 'M'}</Text>
-              </View>
+              <Pressable
+                key={cinema.id}
+                onPress={() => onSelectCinema?.(cinema.id)}
+                style={[styles.marker, { left, top }, selected ? styles.selectedMarker : styles.defaultMarker]}
+              >
+                <MapPin color={selected ? colors.background : colors.text} size={15} />
+              </Pressable>
             );
           })}
-        </View>
-      ) : null}
+      </View>
       <View style={styles.infoPanel} pointerEvents="none">
         <View style={styles.centerPin}>
           <MapPin color={colors.gold} size={18} />
@@ -113,18 +117,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
   },
-  majorMarker: {
-    backgroundColor: '#d73327',
-    borderColor: '#ff8b7f',
+  defaultMarker: {
+    backgroundColor: colors.panelSoft,
+    borderColor: colors.gold,
   },
-  sfMarker: {
+  selectedMarker: {
     backgroundColor: colors.gold,
-    borderColor: '#fff1bf',
-  },
-  markerText: {
-    color: colors.background,
-    fontSize: 9,
-    fontWeight: '900',
+    borderColor: '#fff2b2',
   },
   centerPin: {
     width: 36,

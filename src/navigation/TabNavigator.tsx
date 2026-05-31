@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Film, MapPin, Ticket, UserRound } from 'lucide-react-native';
+import { Clapperboard, MapPinned, Ticket, UserRound } from 'lucide-react-native';
 import { colors } from '../core/theme';
 
 export default function TabLayout() {
@@ -8,38 +8,35 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#070707',
+          backgroundColor: '#1f1f21',
           borderTopColor: colors.border,
-          minHeight: 56,
-          paddingTop: 4,
-          paddingBottom: 4,
+          height: 72,
+          paddingTop: 8,
+          paddingBottom: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 8,
+          fontSize: 10,
           fontWeight: '800',
-          textTransform: 'uppercase',
         },
         tabBarItemStyle: {
-          borderRadius: 8,
-          marginHorizontal: 3,
+          borderRadius: 12,
         },
         tabBarActiveTintColor: colors.gold,
         tabBarInactiveTintColor: colors.muted,
-        tabBarActiveBackgroundColor: 'rgba(215,181,109,0.13)',
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Now Playing',
-          tabBarIcon: ({ color, size }) => <Film color={color} size={size} />,
+          title: 'Movies',
+          tabBarIcon: ({ color, size }) => <Clapperboard color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="cinemas"
         options={{
-          title: 'Nearby',
-          tabBarIcon: ({ color, size }) => <MapPin color={color} size={size} />,
+          title: 'Cinemas',
+          tabBarIcon: ({ color, size }) => <MapPinned color={color} size={size} />,
         }}
       />
       <Tabs.Screen
