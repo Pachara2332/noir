@@ -83,18 +83,17 @@ Note: `supabase/seed.sql` truncates movie, cinema, showtime, seat, and booking d
 ## Project Structure
 
 ```text
-app/
-  auth/                 Login and register screens
-  (protected)/          Auth-protected stack
-    (tabs)/             Main tab screens
-    movie/[id].tsx      Movie detail and showtimes
-    showtime/[id].tsx   Seat map and booking
 src/
-  components/           Reusable UI components
-  hooks/                Auth, nearby cinemas, and seat hooks
-  lib/                  Supabase and config clients
-  styles/               Noir theme tokens
+  app/                  Expo Router route entries
+    auth/               Login and register routes
+    (protected)/        Auth-protected routes
+  assets/               App icons and images
+  api/                  Supabase client and data hooks
+  core/                 Auth, app config, and theme tokens
+  navigation/           Root, protected stack, and tab navigators
+  screens/              Screen implementations grouped by feature
   types/                App data types
+  ui/                   Reusable visual components
 supabase/
   seed.sql              Schema, RLS, trigger, and seed data
 ```
